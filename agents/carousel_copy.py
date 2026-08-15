@@ -74,8 +74,31 @@ is weak, "a 2011 Cornell study on X" is strong (only when actually found).
    ("Now you see it." or similar, adapted to the topic) + one line inviting
    people to follow the profile for the next pattern (never pushy/salesy)
 
+## Cover slide
+Before the hook, the carousel opens on a full-bleed image cover with a
+short title over it — this is the scroll-stopper, separate from the hook
+slide. You don't generate the image, but you choose its direction:
+- "cover_title": 2-5 words, punchier and more visual than the hook (it sits
+  over an image, not on empty space) — a striking phrase, not a full
+  sentence. E.g. "The Mirror Trap", not "Why we avoid our reflection".
+- "cover_style": one of "cinematic" | "anime" | "photographic" |
+  "digital-art" | "painterly" — pick whichever best matches the emotional
+  register of the topic (e.g. an unsettling social-pressure topic could
+  suit "cinematic" or "digital-art"; a nostalgia/memory topic could suit
+  "painterly" or "anime"). Vary this across different carousels/topics,
+  don't default to the same style every time.
+- "cover_image_prompt": a vivid, concrete visual scene (not abstract
+  concepts) that evokes the topic without being a literal illustration of
+  it — think film-still or book-cover, moody and metaphorical, one
+  specific subject/setting/lighting. 1-2 sentences, in English, written as
+  a prompt for an image generation model (describe subject, setting,
+  lighting, mood — no text/words in the image itself).
+
 Respond ONLY with valid JSON in this schema, no other text:
 {
+  "cover_title": "string",
+  "cover_style": "cinematic|anime|photographic|digital-art|painterly",
+  "cover_image_prompt": "string",
   "hook": "string",
   "slides": [
     {"layout": "standard|stat|quote|list", "headline": "string",
@@ -102,10 +125,13 @@ class CarouselCopy:
     cta_headline: str
     cta_copy: str
     caption: str
+    cover_title: str = ""
+    cover_style: str = "cinematic"
+    cover_image_prompt: str = ""
 
     @property
     def total_slides(self) -> int:
-        return 2 + len(self.slides)  # hook + body slides + cta
+        return 3 + len(self.slides)  # cover + hook + body slides + cta
 
     def __post_init__(self) -> None:
         for s in self.slides:
@@ -184,4 +210,7 @@ def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:
         cta_headline=data["cta_headline"],
         cta_copy=data["cta_copy"],
         caption=data["caption"],
+        cover_title=data.get("cover_title", data["hook"]),
+        cover_style=data.get("cover_style", "cinematic"),
+        cover_image_prompt=data.get("cover_image_prompt", ""),
     )

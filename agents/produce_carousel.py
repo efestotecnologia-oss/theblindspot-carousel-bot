@@ -19,7 +19,7 @@ import tempfile
 from datetime import datetime
 from pathlib import Path
 
-from agents import carousel_copy, carousel_render
+from agents import carousel_copy, carousel_render, cover_image
 from content.factory import ContentStore
 from content.uploader import MediaUploader, get_uploader
 from core.models import Media, MediaType, Platform, Post
@@ -50,10 +50,16 @@ def produce_carousel_one(store: ContentStore, topic: str, post_id: str,
     print(f"[1/2] Copy per: {topic!r}")
     copy = carousel_copy.generate_carousel_copy(topic, n_body_slides=n_body_slides)
 
-    print(f"[2/2] Render {copy.total_slides} slide")
     tmp_dir = Path(tempfile.mkdtemp(prefix=f"carousel-{post_id}-"))
     try:
-        slide_paths = carousel_render.render_carousel(copy, tmp_dir, post_id)
+        print("[2/3] Copertina")
+        cover_path = cover_image.get_cover_image(
+            topic, copy.cover_image_prompt, copy.cover_style,
+            tmp_dir / "cover_source.png",
+        )
+        print(f"[3/3] Render {copy.total_slides} slide")
+        slide_paths = carousel_render.render_carousel(copy, tmp_dir, post_id,
+                                                        cover_image_path=cover_path)
         media = [Media(url=uploader.upload(str(p)), type=MediaType.IMAGE)
                  for p in slide_paths]
     finally:

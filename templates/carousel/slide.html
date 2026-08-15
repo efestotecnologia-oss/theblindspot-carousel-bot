@@ -5,6 +5,25 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  {% if kind == "cover" %}
+  <div class="slide cover {{ 'has-image' if cover_image_data_uri else 'no-image' }}">
+    {% if cover_image_data_uri %}
+    <img class="cover-bg" src="{{ cover_image_data_uri }}" alt="">
+    <div class="cover-scrim"></div>
+    {% else %}
+    <div class="cover-scrim cover-scrim-noimg"></div>
+    <svg class="blindspot cover-blindspot" viewBox="0 0 152 152">
+      <circle class="ring" cx="76" cy="76" r="70"/>
+      <circle class="fill" cx="76" cy="76" r="66"/>
+    </svg>
+    {% endif %}
+    <div class="cover-content">
+      <div class="eyebrow"><span class="mark">OBS.</span> THE BLIND SPOT</div>
+      <div class="cover-title">{{ headline|safe }}</div>
+      <div class="cover-rule"></div>
+    </div>
+  </div>
+  {% else %}
   <div class="slide {{ kind }} layout-{{ layout }}" style="--fill: {{ fill_opacity }};">
     <div class="eyebrow">
       {% if kind == "cta" %}THE BLIND SPOT{% else %}<span class="mark">OBS.</span> {{ "%02d"|format(index) }}{% endif %}
@@ -42,5 +61,6 @@
       <circle class="fill" cx="76" cy="76" r="66"/>
     </svg>
   </div>
+  {% endif %}
 </body>
 </html>

@@ -10,6 +10,9 @@ elevenlabs>=1.0
 # Dopo l'installazione serve anche: playwright install chromium
 jinja2>=3.1
 playwright>=1.45
+# Immagine di copertina (agents/cover_image.py): stilizzazione con filtri
+Pillow>=10.0
+numpy>=1.24
 
 # X (Twitter) — necessario quando attivi l'adapter twitter
 requests-oauthlib>=1.3

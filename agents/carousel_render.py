@@ -10,6 +10,7 @@ Richiede: `pip install playwright && playwright install chromium`.
 
 from __future__ import annotations
 
+import base64
 import os
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,7 +31,7 @@ FILL_MIN = 0.0
 
 @dataclass
 class SlideSpec:
-    kind: str          # "hook" | "body" | "cta"
+    kind: str          # "cover" | "hook" | "body" | "cta"
     index: int
     total: int
     headline: str
@@ -38,6 +39,7 @@ class SlideSpec:
     layout: str = "standard"   # "standard" | "stat" | "quote" | "list"
     highlight: str = ""
     items: list[str] | None = None
+    cover_image_data_uri: str = ""
 
     @property
     def fill_opacity(self) -> float:
@@ -47,10 +49,18 @@ class SlideSpec:
         return round(FILL_MAX * (1 - t), 3)
 
 
-def build_slide_specs(copy: CarouselCopy) -> list[SlideSpec]:
+def _image_data_uri(path: Path | None) -> str:
+    if not path:
+        return ""
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode()
+
+
+def build_slide_specs(copy: CarouselCopy, cover_image_path: Path | None = None) -> list[SlideSpec]:
     total = copy.total_slides
-    specs = [SlideSpec(kind="hook", index=1, total=total, headline=copy.hook)]
-    for i, s in enumerate(copy.slides, start=2):
+    specs = [SlideSpec(kind="cover", index=1, total=total, headline=copy.cover_title,
+                        cover_image_data_uri=_image_data_uri(cover_image_path))]
+    specs.append(SlideSpec(kind="hook", index=2, total=total, headline=copy.hook))
+    for i, s in enumerate(copy.slides, start=3):
         specs.append(SlideSpec(
             kind="body", index=i, total=total,
             headline=s["headline"], copy=s.get("copy", ""),
@@ -63,13 +73,14 @@ def build_slide_specs(copy: CarouselCopy) -> list[SlideSpec]:
     return specs
 
 
-def render_carousel(copy: CarouselCopy, output_dir: str | Path, stem: str) -> list[Path]:
+def render_carousel(copy: CarouselCopy, output_dir: str | Path, stem: str,
+                     cover_image_path: str | Path | None = None) -> list[Path]:
     """Renderizza tutte le slide e restituisce i path dei PNG generati, in ordine."""
     from playwright.sync_api import sync_playwright  # lazy: serve solo in produzione
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    specs = build_slide_specs(copy)
+    specs = build_slide_specs(copy, Path(cover_image_path) if cover_image_path else None)
 
     env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)))
     template = env.get_template("slide.html")
@@ -100,6 +111,7 @@ def render_carousel(copy: CarouselCopy, output_dir: str | Path, stem: str) -> li
                     layout=spec.layout,
                     highlight=spec.highlight,
                     items=spec.items,
+                    cover_image_data_uri=spec.cover_image_data_uri,
                     fill_opacity=spec.fill_opacity,
                 )
                 tmp_html = TEMPLATE_DIR / "_tmp_slide.html"

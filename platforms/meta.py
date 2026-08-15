@@ -145,6 +145,10 @@ class InstagramAdapter(_GraphMixin, PlatformAdapter):
             "children": ",".join(item_ids),
             "caption": caption,
         })
+        # Anche il container padre va atteso: pubblicarlo subito dopo la
+        # creazione (senza controllare status_code) restituisce spesso
+        # "Media ID is not available" perché non è ancora elaborato.
+        self._wait_ready(parent["id"])
         return parent["id"]
 
     def _wait_ready(self, creation_id: str, attempts: int = 30, delay: float = 5.0) -> None:

@@ -21,31 +21,30 @@ load_dotenv()
 MODEL = os.getenv("CAROUSEL_MODEL", "claude-sonnet-5")
 
 PERSONA_SYSTEM_PROMPT = """
-Scrivi il testo di caroselli Instagram per "The Blind Spot", un profilo che
-analizza il comportamento umano: bias cognitivi, pattern, abitudini
-inconsapevoli. Bio del profilo: "Human behavior, unfiltered. The bias.
-The pattern. The reason you did that."
+Write Instagram carousel copy for "The Blind Spot", a profile that examines
+human behavior: cognitive biases, patterns, unconscious habits. Profile bio:
+"Human behavior, unfiltered. The bias. The pattern. The reason you did that."
 
-Tono:
-- Analitico ma caldo: osserva senza giudicare, come chi nota un pattern
-  in un amico e glielo fa notare con gentilezza
-- Diretto, mai accademico: niente gergo da manuale di psicologia
-- Ogni carosello deve insegnare UNA cosa vera e verificabile, non solo
-  intrattenere
+The audience is English-speaking. Always write in English.
 
-Struttura del carosello:
-1. Slide di apertura ("hook"): una domanda o affermazione che chiama in
-   causa chi legge, max 8-10 parole, deve fermare lo scroll
-2. Slide di corpo (il numero richiesto): ciascuna con un headline breve
-   (3-6 parole) + un corpo di 1-2 frasi che spiega un pezzo del pattern.
-   Le slide di corpo devono avere una progressione logica: dalla
-   descrizione del pattern al "perché succede" alla implicazione pratica
-3. Slide di chiusura ("cta"): headline breve che sintetizza la presa di
-   coscienza ("Ora lo vedi." o simile, adattata al topic) + una riga di
-   invito a seguire il profilo per il prossimo pattern (senza toni da
-   pubblicità aggressiva)
+Tone:
+- Analytical but warm: observe without judging, like someone who notices a
+  pattern in a friend and points it out gently
+- Direct, never academic: no psychology-textbook jargon
+- Each carousel must teach ONE true, verifiable thing, not just entertain
 
-Rispondi SOLO con un JSON valido in questo schema, nessun altro testo:
+Carousel structure:
+1. Opening slide ("hook"): a question or statement that calls out the
+   reader, max 8-10 words, must stop the scroll
+2. Body slides (the requested count): each with a short headline (3-6
+   words) + 1-2 sentences of body copy explaining one piece of the pattern.
+   Body slides must have a logical progression: from describing the
+   pattern, to why it happens, to the practical implication
+3. Closing slide ("cta"): a short headline that sums up the realization
+   ("Now you see it." or similar, adapted to the topic) + one line inviting
+   people to follow the profile for the next pattern (never pushy/salesy)
+
+Respond ONLY with valid JSON in this schema, no other text:
 {
   "hook": "string",
   "slides": [{"headline": "string", "copy": "string"}, ...],
@@ -53,8 +52,8 @@ Rispondi SOLO con un JSON valido in questo schema, nessun altro testo:
   "cta_copy": "string",
   "caption": "string"
 }
-Il campo "caption" è la didascalia del post Instagram: riprende l'hook,
-aggiunge 1-2 frasi di contesto e 3-5 hashtag pertinenti in fondo.
+"caption" is the Instagram post caption: it reuses the hook, adds 1-2
+sentences of context, and ends with 3-5 relevant hashtags.
 """
 
 
@@ -94,7 +93,7 @@ def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:
             ),
         }],
     )
-    raw = message.content[0].text.strip()
+    raw = next(b.text for b in message.content if b.type == "text").strip()
     # Claude a volte racchiude il JSON in un blocco ```json — lo ripuliamo.
     if raw.startswith("```"):
         raw = raw.strip("`")

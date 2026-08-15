@@ -77,4 +77,4 @@ def generate_script(topic: str) -> str:
             }
         ],
     )
-    return message.content[0].text
+    return next(b.text for b in message.content if b.type == "text")

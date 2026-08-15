@@ -206,7 +206,7 @@ def _stylize_and_save(raw: bytes, out_path: Path) -> Path:
 
 
 def get_cover_image(topic: str, cover_image_prompt: str, cover_style: str,
-                     out_path: str | Path) -> Path | None:
+                     out_path: str | Path, cover_search_terms: str = "") -> Path | None:
     """Procura e stilizza l'immagine di copertina. Ritorna None (nessun
     errore) se nessun provider è configurato o tutti falliscono: il
     template di copertina ha una variante senza immagine per questo caso."""
@@ -217,7 +217,12 @@ def get_cover_image(topic: str, cover_image_prompt: str, cover_style: str,
     if PROVIDER in ("auto", "stability"):
         raw = _generate_stability(prompt, cover_style)
     if raw is None and PROVIDER in ("auto", "pexels"):
-        raw = _search_pexels(topic, cover_style)
+        # Su Pexels si cerca per parole chiave: la frase intera del topic
+        # ("why we keep scrolling an app we are not even enjoying") non
+        # trova nulla di pertinente. I termini scelti dal copy agent
+        # descrivono il soggetto fisico della scena e funzionano molto
+        # meglio; il topic resta solo come ultimo ripiego.
+        raw = _search_pexels(cover_search_terms or topic, cover_style)
     if raw is None:
         return None
     return _stylize_and_save(raw, out_path)

@@ -94,12 +94,19 @@ slide. You don't generate the image, but you choose its direction:
   specific subject/setting/lighting. 1-2 sentences, in English, written as
   a prompt for an image generation model (describe subject, setting,
   lighting, mood — no text/words in the image itself).
+- "cover_search_terms": 2-4 words naming the concrete PHYSICAL SUBJECT of
+  that scene, as you'd type into a stock photo site — used as a fallback
+  when the image is searched rather than generated. Name things a camera
+  can see (e.g. "empty subway platform", "hands on steering wheel"), never
+  the abstract concept (not "regret", not "social pressure") and never a
+  full sentence.
 
 Respond ONLY with valid JSON in this schema, no other text:
 {
   "cover_title": "string",
   "cover_style": "cinematic|anime|photographic|digital-art|painterly",
   "cover_image_prompt": "string",
+  "cover_search_terms": "string",
   "hook": "string",
   "slides": [
     {"layout": "standard|stat|quote|list", "headline": "string",
@@ -129,6 +136,7 @@ class CarouselCopy:
     cover_title: str = ""
     cover_style: str = "cinematic"
     cover_image_prompt: str = ""
+    cover_search_terms: str = ""
 
     @property
     def total_slides(self) -> int:
@@ -232,4 +240,5 @@ def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:
         cover_title=data.get("cover_title", data["hook"]),
         cover_style=data.get("cover_style", "cinematic"),
         cover_image_prompt=data.get("cover_image_prompt", ""),
+        cover_search_terms=data.get("cover_search_terms", ""),
     )

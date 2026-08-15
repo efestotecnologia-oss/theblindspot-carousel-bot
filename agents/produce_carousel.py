@@ -67,6 +67,7 @@ def produce_carousel_one(store: ContentStore, topic: str, post_id: str,
             cover_path = cover_image.get_cover_image(
                 topic, copy.cover_image_prompt, copy.cover_style,
                 tmp_dir / "cover_source.png",
+                cover_search_terms=copy.cover_search_terms,
             )
         print(f"[3/3] Render {copy.total_slides} slide")
         slide_paths = carousel_render.render_carousel(copy, tmp_dir, post_id,

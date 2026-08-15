@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass
 
 from dotenv import load_dotenv
@@ -138,6 +139,24 @@ class CarouselCopy:
             s.setdefault("layout", "standard")
 
 
+# Con il tool di web search il modello a volte avvolge le frasi riprese da
+# una fonte in <cite index="...">…</cite>. Quei tag NON devono finire né
+# nelle didascalie (dove si vedrebbero come markup) né nelle slide (dove il
+# template usa |safe e li interpreterebbe come HTML).
+_CITE_TAG_RE = re.compile(r"</?cite\b[^>]*>", re.IGNORECASE)
+
+
+def _strip_citations(value):
+    """Ripulisce ricorsivamente stringhe/liste/dict dai tag di citazione."""
+    if isinstance(value, str):
+        return _CITE_TAG_RE.sub("", value).strip()
+    if isinstance(value, list):
+        return [_strip_citations(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _strip_citations(v) for k, v in value.items()}
+    return value
+
+
 def _get_client():
     from anthropic import Anthropic  # lazy: serve solo in produzione
     api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -174,7 +193,7 @@ def _extract_json(message) -> dict:
     start, end = raw.find("{"), raw.rfind("}")
     if start != -1 and end != -1:
         raw = raw[start:end + 1]
-    return json.loads(raw)
+    return _strip_citations(json.loads(raw))
 
 
 def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:

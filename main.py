@@ -117,10 +117,11 @@ def cmd_produce(store: ContentStore, topics: list[str] | None) -> None:
 
 
 def cmd_produce_carousel(store: ContentStore, topics: list[str] | None,
-                          n_slides: int) -> None:
+                          n_slides: int, cover: str | None) -> None:
     from agents.produce_carousel import produce_carousel
     try:
-        posts = produce_carousel(store, topics, n_body_slides=n_slides)
+        posts = produce_carousel(store, topics, n_body_slides=n_slides,
+                                  cover_override=cover)
     except RuntimeError as e:
         print(f"Produzione interrotta: {e}")
         return
@@ -230,6 +231,10 @@ def main() -> None:
                        required=True, help="argomento del carosello (ripetibile)")
     p_car.add_argument("--slides", type=int, default=5, dest="n_slides",
                        help="numero di slide di corpo (oltre a hook e CTA), default 5")
+    p_car.add_argument("--cover", metavar="PATH", default=None,
+                       help="immagine locale scelta a mano per la copertina "
+                            "(sostituisce quella generata/stock; si applica "
+                            "a tutti i --topic passati in questo run)")
     sub.add_parser("list")
     p_prev = sub.add_parser("preview"); p_prev.add_argument("id")
     p_appr = sub.add_parser("approve"); p_appr.add_argument("id")
@@ -245,7 +250,7 @@ def main() -> None:
     if args.cmd == "produce":
         cmd_produce(store, args.topics)
     elif args.cmd == "produce-carousel":
-        cmd_produce_carousel(store, args.topics, args.n_slides)
+        cmd_produce_carousel(store, args.topics, args.n_slides, args.cover)
     elif args.cmd == "list":
         cmd_list(store)
     elif args.cmd == "preview":

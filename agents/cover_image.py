@@ -42,6 +42,35 @@ _STABILITY_STYLE_PRESET = {
     "painterly": "fantasy-art",
 }
 
+# Il preset da solo produce risultati generici: aggiungiamo al prompt un
+# vocabolario tecnico specifico per stile (inquadratura, illuminazione,
+# grana) per avvicinarsi a un vero fotogramma invece che a un'illustrazione
+# stock-AI riconoscibile.
+_STYLE_PROMPT_SUFFIX = {
+    "cinematic": (
+        ", shot on 35mm anamorphic film, dramatic single-source lighting, "
+        "shallow depth of field, film grain, movie still composition, "
+        "moody color grade"
+    ),
+    "anime": (
+        ", anime key visual, cel-shaded lighting, detailed linework, "
+        "dramatic camera angle, studio-quality character illustration, "
+        "cinematic anime film still"
+    ),
+    "photographic": (
+        ", professional editorial photography, natural lighting, sharp "
+        "focus, shot on medium format camera"
+    ),
+    "digital-art": (
+        ", moody concept art, dramatic rim lighting, painterly digital "
+        "brushwork, atmospheric depth"
+    ),
+    "painterly": (
+        ", oil painting texture, visible brushstrokes, chiaroscuro "
+        "lighting, fine art composition"
+    ),
+}
+
 # Query di ripiego per Pexels quando lo stile non è "photographic" — Pexels
 # ha solo foto reali, quindi orientiamo la ricerca su mood/atmosfera invece
 # che sullo stile pittorico/anime che non può restituire.
@@ -67,6 +96,7 @@ def _generate_stability(prompt: str, style: str) -> bytes | None:
     if not STABILITY_API_KEY:
         return None
     preset = _STABILITY_STYLE_PRESET.get(style, "cinematic")
+    full_prompt = prompt + _STYLE_PROMPT_SUFFIX.get(style, "")
     try:
         resp = requests.post(
             "https://api.stability.ai/v2beta/stable-image/generate/core",
@@ -76,7 +106,8 @@ def _generate_stability(prompt: str, style: str) -> bytes | None:
             },
             files={"none": ""},
             data={
-                "prompt": prompt,
+                "prompt": full_prompt,
+                "negative_prompt": "text, watermark, logo, signature, low quality, blurry",
                 "aspect_ratio": "4:5",
                 "style_preset": preset,
                 "output_format": "png",
@@ -163,6 +194,17 @@ def _stylize(raw: bytes) -> bytes:
     return out.getvalue()
 
 
+def _stylize_and_save(raw: bytes, out_path: Path) -> Path:
+    try:
+        styled = _stylize(raw)
+    except ImportError:
+        # Pillow/numpy non installati: meglio un'immagine non stilizzata
+        # che nessuna immagine.
+        styled = raw
+    out_path.write_bytes(styled)
+    return out_path
+
+
 def get_cover_image(topic: str, cover_image_prompt: str, cover_style: str,
                      out_path: str | Path) -> Path | None:
     """Procura e stilizza l'immagine di copertina. Ritorna None (nessun
@@ -178,12 +220,15 @@ def get_cover_image(topic: str, cover_image_prompt: str, cover_style: str,
         raw = _search_pexels(topic, cover_style)
     if raw is None:
         return None
+    return _stylize_and_save(raw, out_path)
 
-    try:
-        styled = _stylize(raw)
-    except ImportError:
-        # Pillow/numpy non installati: meglio un'immagine non stilizzata
-        # che nessuna immagine.
-        styled = raw
-    out_path.write_bytes(styled)
-    return out_path
+
+def use_manual_cover(image_path: str | Path, out_path: str | Path) -> Path:
+    """Copertina scelta a mano (es. un fotogramma reale che l'utente ha
+    deciso consapevolmente di usare per QUESTO singolo post): applica lo
+    stesso trattamento di stile di quelle generate/stock, per coerenza
+    visiva, ma la scelta e la responsabilità editoriale/di diritti restano
+    dell'utente — questa funzione non fa parte della catena automatica di
+    get_cover_image() e va invocata esplicitamente."""
+    raw = Path(image_path).read_bytes()
+    return _stylize_and_save(raw, Path(out_path))

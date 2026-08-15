@@ -45,18 +45,29 @@ def _check_prerequisites() -> MediaUploader:
 
 def produce_carousel_one(store: ContentStore, topic: str, post_id: str,
                           platforms: list[Platform], uploader: MediaUploader,
-                          n_body_slides: int = DEFAULT_BODY_SLIDES) -> Post:
-    """Produce un singolo carosello e lo salva come bozza nello store."""
+                          n_body_slides: int = DEFAULT_BODY_SLIDES,
+                          cover_override: str | Path | None = None) -> Post:
+    """Produce un singolo carosello e lo salva come bozza nello store.
+
+    cover_override: path locale a un'immagine scelta a mano (es. un
+    fotogramma reale) da usare come copertina invece di quella generata
+    automaticamente — scelta editoriale intenzionale dell'utente, non
+    l'automatismo di default. Applica comunque lo stesso filtro di stile.
+    """
     print(f"[1/2] Copy per: {topic!r}")
     copy = carousel_copy.generate_carousel_copy(topic, n_body_slides=n_body_slides)
 
     tmp_dir = Path(tempfile.mkdtemp(prefix=f"carousel-{post_id}-"))
     try:
         print("[2/3] Copertina")
-        cover_path = cover_image.get_cover_image(
-            topic, copy.cover_image_prompt, copy.cover_style,
-            tmp_dir / "cover_source.png",
-        )
+        if cover_override:
+            cover_path = cover_image.use_manual_cover(
+                cover_override, tmp_dir / "cover_source.png")
+        else:
+            cover_path = cover_image.get_cover_image(
+                topic, copy.cover_image_prompt, copy.cover_style,
+                tmp_dir / "cover_source.png",
+            )
         print(f"[3/3] Render {copy.total_slides} slide")
         slide_paths = carousel_render.render_carousel(copy, tmp_dir, post_id,
                                                         cover_image_path=cover_path)
@@ -71,9 +82,14 @@ def produce_carousel_one(store: ContentStore, topic: str, post_id: str,
 
 
 def produce_carousel(store: ContentStore, topics: list[str] | None = None,
-                      n_body_slides: int = DEFAULT_BODY_SLIDES) -> list[Post]:
+                      n_body_slides: int = DEFAULT_BODY_SLIDES,
+                      cover_override: str | Path | None = None) -> list[Post]:
     """Produce un carosello per ogni topic passato (nessun default: il piano
-    editoriale dei caroselli va sempre indicato esplicitamente con --topic)."""
+    editoriale dei caroselli va sempre indicato esplicitamente con --topic).
+
+    cover_override, se passato, si applica a TUTTI i topic del batch: pensato
+    per un run manuale a singolo topic, non per la produzione automatica.
+    """
     if not topics:
         raise RuntimeError(
             "Nessun topic indicato: usa --topic \"argomento\" (ripetibile)."
@@ -86,5 +102,5 @@ def produce_carousel(store: ContentStore, topics: list[str] | None = None,
     for i, topic in enumerate(topics, start=1):
         post_id = f"carousel-{stamp}-{i:02d}"
         posts.append(produce_carousel_one(store, topic, post_id, platforms,
-                                          uploader, n_body_slides))
+                                          uploader, n_body_slides, cover_override))
     return posts

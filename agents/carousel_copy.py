@@ -121,6 +121,15 @@ def _get_client():
 
 
 def _extract_json(message) -> dict:
+    if message.stop_reason == "max_tokens":
+        # Con il tool di web search le ricerche consumano lo stesso budget di
+        # token della risposta finale: se il modello e' stato troncato prima
+        # di chiudere il JSON, e' inutile provare a fare il parsing.
+        raise RuntimeError(
+            "Risposta troncata (max_tokens raggiunto prima del JSON finale): "
+            "alza max_tokens in generate_carousel_copy() o riduci max_uses "
+            "del web_search."
+        )
     # Con il tool di web search Claude produce piu' blocchi di testo
     # (ragionamento intermedio tra una ricerca e l'altra): il JSON finale
     # e' sempre nell'ULTIMO blocco di testo, non nel primo.
@@ -148,7 +157,7 @@ def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:
     client = _get_client()
     kwargs = dict(
         model=MODEL,
-        max_tokens=4000,
+        max_tokens=8000,
         system=PERSONA_SYSTEM_PROMPT,
         messages=[{
             "role": "user",

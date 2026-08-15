@@ -10,6 +10,7 @@ Richiede: `pip install playwright && playwright install chromium`.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +35,9 @@ class SlideSpec:
     total: int
     headline: str
     copy: str = ""
+    layout: str = "standard"   # "standard" | "stat" | "quote" | "list"
+    highlight: str = ""
+    items: list[str] | None = None
 
     @property
     def fill_opacity(self) -> float:
@@ -47,8 +51,13 @@ def build_slide_specs(copy: CarouselCopy) -> list[SlideSpec]:
     total = copy.total_slides
     specs = [SlideSpec(kind="hook", index=1, total=total, headline=copy.hook)]
     for i, s in enumerate(copy.slides, start=2):
-        specs.append(SlideSpec(kind="body", index=i, total=total,
-                                headline=s["headline"], copy=s.get("copy", "")))
+        specs.append(SlideSpec(
+            kind="body", index=i, total=total,
+            headline=s["headline"], copy=s.get("copy", ""),
+            layout=s.get("layout", "standard"),
+            highlight=s.get("highlight", ""),
+            items=s.get("items") or None,
+        ))
     specs.append(SlideSpec(kind="cta", index=total, total=total,
                             headline=copy.cta_headline, copy=copy.cta_copy))
     return specs
@@ -67,7 +76,18 @@ def render_carousel(copy: CarouselCopy, output_dir: str | Path, stem: str) -> li
 
     paths: list[Path] = []
     with sync_playwright() as p:
-        browser = p.chromium.launch()
+        # Alcuni ambienti cloud hanno una versione di Chromium pre-installata
+        # più vecchia di quella attesa dal pacchetto playwright pinnato: in
+        # quel caso preferiamo l'eseguibile già presente invece di tentare
+        # (e fallire) un download.
+        browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH")
+        executable_path = None
+        if browsers_path:
+            candidates = sorted(Path(browsers_path).glob("chromium*/chrome-linux/chrome"))
+            if candidates:
+                executable_path = str(candidates[-1])
+        browser = p.chromium.launch(executable_path=executable_path) if executable_path \
+            else p.chromium.launch()
         page = browser.new_page(viewport={"width": SLIDE_WIDTH, "height": SLIDE_HEIGHT})
         try:
             for spec in specs:
@@ -77,6 +97,9 @@ def render_carousel(copy: CarouselCopy, output_dir: str | Path, stem: str) -> li
                     total=spec.total,
                     headline=spec.headline,
                     copy=spec.copy,
+                    layout=spec.layout,
+                    highlight=spec.highlight,
+                    items=spec.items,
                     fill_opacity=spec.fill_opacity,
                 )
                 tmp_html = TEMPLATE_DIR / "_tmp_slide.html"

@@ -97,13 +97,23 @@ class GitHubRawUploader(MediaUploader):
     """
 
     def __init__(self, repo: str, branch: str = "main", subdir: str = "public/carousels",
-                 repo_root: str | None = None):
+                 repo_root: str | None = None, push_token: str | None = None):
         self.repo = repo  # "owner/nome-repo"
         self.branch = branch
         self.repo_root = Path(repo_root) if repo_root else Path.cwd()
         self.dest_dir = self.repo_root / subdir
         self.subdir = subdir.strip("/")
         self.dest_dir.mkdir(parents=True, exist_ok=True)
+        # Token opzionale (PAT) per push autenticato: necessario nelle Routine
+        # cloud, dove le credenziali git della sessione non hanno accesso in
+        # scrittura al repo. Se assente, si usa il remote/credenziali già
+        # configurati nell'ambiente (comportamento locale invariato).
+        self.push_token = push_token
+
+    def _push_remote_url(self) -> str | None:
+        if not self.push_token:
+            return None
+        return f"https://x-access-token:{self.push_token}@github.com/{self.repo}.git"
 
     def upload(self, local_path: str) -> str:
         import subprocess
@@ -123,7 +133,9 @@ class GitHubRawUploader(MediaUploader):
                 ["git", "commit", "-m", f"carousel: aggiungi {name}"],
                 cwd=self.repo_root, check=True,
             )
-            subprocess.run(["git", "push", "origin", self.branch],
+            push_url = self._push_remote_url()
+            push_target = [push_url] if push_url else ["origin"]
+            subprocess.run(["git", "push", *push_target, f"HEAD:{self.branch}"],
                           cwd=self.repo_root, check=True)
 
         return f"https://raw.githubusercontent.com/{self.repo}/{self.branch}/{rel_path}"
@@ -143,7 +155,8 @@ def get_uploader() -> MediaUploader | None:
     if kind == "github":
         return GitHubRawUploader(os.environ["MEDIA_GITHUB_REPO"],
                                  os.getenv("MEDIA_GITHUB_BRANCH", "main"),
-                                 os.getenv("MEDIA_GITHUB_DIR", "public/carousels"))
+                                 os.getenv("MEDIA_GITHUB_DIR", "public/carousels"),
+                                 push_token=os.getenv("MEDIA_GITHUB_PUSH_TOKEN"))
     return None
 
 

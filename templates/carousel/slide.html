@@ -5,14 +5,31 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="slide {{ kind }}" style="--fill: {{ fill_opacity }};">
+  <div class="slide {{ kind }} layout-{{ layout }}" style="--fill: {{ fill_opacity }};">
     <div class="eyebrow">
       {% if kind == "cta" %}THE BLIND SPOT{% else %}<span class="mark">OBS.</span> {{ "%02d"|format(index) }}{% endif %}
     </div>
 
     <div class="body-wrap">
-      <div class="headline {{ 'hook' if kind == 'hook' else '' }}">{{ headline|safe }}</div>
-      {% if copy %}<div class="copy">{{ copy|safe }}</div>{% endif %}
+      {% if kind == "body" and layout == "stat" %}
+        <div class="stat-number">{{ highlight|safe }}</div>
+        <div class="headline">{{ headline|safe }}</div>
+        {% if copy %}<div class="copy">{{ copy|safe }}</div>{% endif %}
+      {% elif kind == "body" and layout == "quote" %}
+        <div class="quote-mark">&ldquo;</div>
+        <div class="headline quote-line">{{ headline|safe }}</div>
+        {% if highlight %}<div class="quote-attr">{{ highlight|safe }}</div>{% endif %}
+      {% elif kind == "body" and layout == "list" and items %}
+        <div class="headline">{{ headline|safe }}</div>
+        <ol class="item-list">
+          {% for item in items %}
+          <li><span class="item-index">{{ "%02d"|format(loop.index) }}</span><span class="item-text">{{ item|safe }}</span></li>
+          {% endfor %}
+        </ol>
+      {% else %}
+        <div class="headline {{ 'hook' if kind == 'hook' else '' }}">{{ headline|safe }}</div>
+        {% if copy %}<div class="copy">{{ copy|safe }}</div>{% endif %}
+      {% endif %}
     </div>
 
     <div class="footer">

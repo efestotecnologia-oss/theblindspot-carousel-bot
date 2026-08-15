@@ -133,6 +133,12 @@ def _extract_json(message) -> dict:
         raw = raw.split("\n", 1)[1] if "\n" in raw else raw
         if raw.lower().startswith("json"):
             raw = raw.split("\n", 1)[1]
+    # Claude a volte precede il JSON con una frase di transizione (frequente
+    # quando ha appena usato il web search), senza blocco ```: isoliamo
+    # l'oggetto JSON invece di assumere che raw inizi con "{".
+    start, end = raw.find("{"), raw.rfind("}")
+    if start != -1 and end != -1:
+        raw = raw[start:end + 1]
     return json.loads(raw)
 
 

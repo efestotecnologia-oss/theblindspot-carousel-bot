@@ -1,0 +1,26 @@
+[
+  {
+    "id": "recFAKE0000",
+    "fields": {
+      "PostId": "at-001",
+      "Text": "Post da Airtable (simulato) 🎬\nSeconda riga di descrizione.",
+      "MediaUrls": "image:https://esempio.com/foto1.jpg",
+      "Platforms": "facebook,instagram",
+      "ScheduledAt": "",
+      "Status": "draft",
+      "Results": ""
+    }
+  },
+  {
+    "id": "recFAKE0001",
+    "fields": {
+      "PostId": "at-002",
+      "Text": "Video di lancio!",
+      "MediaUrls": "video:https://esempio.com/clip.mp4",
+      "Platforms": "twitter,youtube,tiktok",
+      "ScheduledAt": "",
+      "Status": "approved",
+      "Results": ""
+    }
+  }
+]

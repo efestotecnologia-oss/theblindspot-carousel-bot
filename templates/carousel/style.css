@@ -1,0 +1,183 @@
+/* ===========================================================
+   THE BLIND SPOT — sistema di stile per le slide del carosello
+   ===========================================================
+
+   Concetto: un cerchio ricorrente in basso a destra rappresenta
+   il "punto cieco". Sulla prima slide è quasi un disco pieno che
+   copre parte del titolo (non vedi ancora). Slide dopo slide si
+   svuota, fino a diventare un anello vuoto sull'ultima slide
+   (ora vedi). L'opacità di riempimento è calcolata per slide
+   (vedi --fill nel tag <body>, impostato inline dal renderer).
+   ============================================================ */
+
+@font-face {
+  font-family: "Fraunces Disp";
+  src: url("fonts/Fraunces-Variable.woff2") format("woff2");
+  font-weight: 400 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Fraunces Disp";
+  src: url("fonts/Fraunces-Italic500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: italic;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url("fonts/PublicSans-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("fonts/PlexMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: "Plex Mono";
+  src: url("fonts/PlexMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+}
+
+:root {
+  --ink: #131211;
+  --ink-2: #1b1a18;
+  --paper: #ece8df;
+  --paper-dim: #9c968a;
+  --rule: #3a3630;
+  --redact: #c1442d;
+  --highlight: #d9a441;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 1080px;
+  height: 1350px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: "Public Sans", sans-serif;
+  overflow: hidden;
+}
+
+.slide {
+  position: relative;
+  width: 1080px;
+  height: 1350px;
+  padding: 96px 96px 88px 112px;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(1200px 700px at 85% -10%, var(--ink-2), transparent 60%),
+    var(--ink);
+}
+
+/* binder rule lungo il margine sinistro */
+.slide::before {
+  content: "";
+  position: absolute;
+  top: 96px;
+  bottom: 88px;
+  left: 72px;
+  width: 1px;
+  background: var(--rule);
+}
+
+.eyebrow {
+  font-family: "Plex Mono", monospace;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+
+.eyebrow .mark { color: var(--redact); }
+
+.body-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 40px;
+  max-width: 840px;
+}
+
+.headline {
+  font-family: "Fraunces Disp", serif;
+  font-weight: 500;
+  font-size: 84px;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--paper);
+}
+
+.headline em {
+  font-style: italic;
+  color: var(--paper);
+}
+
+.headline mark {
+  background: color-mix(in srgb, var(--highlight) 32%, transparent);
+  color: var(--paper);
+  padding: 0 6px;
+  border-radius: 2px;
+}
+
+.headline.hook { font-size: 104px; }
+
+.copy {
+  font-family: "Public Sans", sans-serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.5;
+  color: var(--paper-dim);
+  max-width: 760px;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.brand {
+  font-family: "Plex Mono", monospace;
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: var(--paper-dim);
+  text-transform: uppercase;
+}
+
+.index {
+  font-family: "Plex Mono", monospace;
+  font-size: 20px;
+  color: var(--paper-dim);
+  letter-spacing: 0.06em;
+}
+
+/* --- il segno distintivo: il punto cieco --- */
+.blindspot {
+  position: absolute;
+  right: 96px;
+  bottom: 84px;
+  width: 152px;
+  height: 152px;
+}
+.blindspot circle.ring {
+  fill: none;
+  stroke: var(--redact);
+  stroke-width: 2.5;
+}
+.blindspot circle.fill {
+  fill: var(--paper-dim);
+  fill-opacity: var(--fill, 0.35);
+  stroke: var(--paper-dim);
+  stroke-width: 1;
+}
+
+.cta .headline { font-size: 96px; }
+.cta .blindspot { right: 50%; transform: translateX(76px); bottom: 220px; width: 220px; height: 220px; }

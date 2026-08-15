@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="slide {{ kind }}" style="--fill: {{ fill_opacity }};">
+    <div class="eyebrow">
+      {% if kind == "cta" %}THE BLIND SPOT{% else %}<span class="mark">OBS.</span> {{ "%02d"|format(index) }}{% endif %}
+    </div>
+
+    <div class="body-wrap">
+      <div class="headline {{ 'hook' if kind == 'hook' else '' }}">{{ headline|safe }}</div>
+      {% if copy %}<div class="copy">{{ copy|safe }}</div>{% endif %}
+    </div>
+
+    <div class="footer">
+      <div class="brand">The Blind Spot</div>
+      <div class="index">{{ "%02d"|format(index) }} / {{ "%02d"|format(total) }}</div>
+    </div>
+
+    <svg class="blindspot" viewBox="0 0 152 152">
+      <circle class="ring" cx="76" cy="76" r="70"/>
+      <circle class="fill" cx="76" cy="76" r="66"/>
+    </svg>
+  </div>
+</body>
+</html>

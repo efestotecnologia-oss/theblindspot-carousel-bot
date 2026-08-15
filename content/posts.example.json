@@ -1,0 +1,22 @@
+[
+  {
+    "id": "post-001",
+    "text": "Ciao dal nostro nuovo agente social! 🚀 #efesto",
+    "media": [],
+    "platforms": ["facebook"],
+    "scheduled_at": null,
+    "status": "draft",
+    "results": {}
+  },
+  {
+    "id": "post-002",
+    "text": "Foto di prova con didascalia.",
+    "media": [
+      { "url": "https://esempio.com/immagine-pubblica.jpg", "type": "image" }
+    ],
+    "platforms": ["facebook", "instagram"],
+    "scheduled_at": null,
+    "status": "draft",
+    "results": {}
+  }
+]

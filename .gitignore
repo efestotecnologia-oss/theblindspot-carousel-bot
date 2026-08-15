@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+content/posts.json
+content/airtable_fake.json
+output_audio/
+output_video/
+agent.log
+templates/carousel/_tmp_slide.html
+graphify-out/

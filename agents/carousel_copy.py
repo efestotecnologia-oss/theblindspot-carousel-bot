@@ -123,6 +123,11 @@ sentences of context grounded in the research (not just a rephrase of the
 slides), and ends with 3-5 relevant hashtags mixing one broad tag (e.g.
 #psychology) with more specific/niche ones (e.g. #cognitivebias,
 #behavioralscience) — avoid generic spam tags (#instagood, #viral).
+
+NEVER write an @handle anywhere in the caption. The post is published by
+the account itself, so a "follow @someone" line is both redundant and
+dangerous: a guessed handle belongs to a real stranger and would tag them.
+Write "follow along" or nothing at all — never an @ mention.
 """
 
 
@@ -152,6 +157,20 @@ class CarouselCopy:
 # nelle didascalie (dove si vedrebbero come markup) né nelle slide (dove il
 # template usa |safe e li interpreterebbe come HTML).
 _CITE_TAG_RE = re.compile(r"</?cite\b[^>]*>", re.IGNORECASE)
+
+
+# Un @handle inventato nella didascalia taggherebbe un account di terzi
+# ignaro. Il prompt lo vieta, ma il prompt non è una garanzia: qui lo
+# togliamo comunque, insieme all'eventuale frase "follow" ormai monca.
+_HANDLE_RE = re.compile(r"\s*@[A-Za-z0-9._]+")
+
+
+def _strip_handles(text: str) -> str:
+    cleaned = _HANDLE_RE.sub("", text)
+    # "Follow  for the next pattern" -> "Follow along for the next pattern"
+    cleaned = re.sub(r"\b([Ff]ollow)\s+(?=for\b)",
+                      lambda m: f"{m.group(1)} along ", cleaned)
+    return re.sub(r"[ \t]{2,}", " ", cleaned)
 
 
 def _strip_citations(value):
@@ -236,7 +255,7 @@ def generate_carousel_copy(topic: str, n_body_slides: int = 5) -> CarouselCopy:
         slides=data["slides"],
         cta_headline=data["cta_headline"],
         cta_copy=data["cta_copy"],
-        caption=data["caption"],
+        caption=_strip_handles(data["caption"]),
         cover_title=data.get("cover_title", data["hook"]),
         cover_style=data.get("cover_style", "cinematic"),
         cover_image_prompt=data.get("cover_image_prompt", ""),

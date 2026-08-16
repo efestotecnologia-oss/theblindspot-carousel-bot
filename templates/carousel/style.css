@@ -96,21 +96,36 @@ html, body {
 
 .eyebrow .mark { color: var(--redact); }
 
+/* Il contenuto si ancora in basso invece di galleggiare al centro: tutte le
+   slide condividono così la stessa linea di base e la sequenza ha un ritmo
+   stabile quando si scorre. Il padding tiene libera la fascia del cerchio. */
 .body-wrap {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 40px;
+  justify-content: flex-end;
+  padding-bottom: 232px;
+  gap: 38px;
   max-width: 840px;
+}
+
+/* La slide di chiusura ha il cerchio al centro: lì il contenuto resta centrato. */
+.cta .body-wrap {
+  justify-content: center;
+  padding-bottom: 0;
 }
 
 .headline {
   font-family: "Fraunces Disp", serif;
   font-weight: 500;
-  font-size: 84px;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  /* Fraunces ha l'asse opsz 9→144 con default 9: senza questa riga i titoli
+     a 84px usano il disegno pensato per il corpo 9 (aste spesse, poco
+     contrasto, spaziatura larga). A 144 si ottiene il taglio da display. */
+  font-variation-settings: "opsz" 144, "wght" 500;
+  font-size: 88px;
+  line-height: 1.03;
+  letter-spacing: -0.015em;
   color: var(--paper);
 }
 
@@ -137,10 +152,14 @@ html, body {
   max-width: 760px;
 }
 
+/* Brand e indice stanno insieme a sinistra: prima l'indice era allineato a
+   destra e finiva sotto il cerchio del punto cieco, che occupa la stessa
+   fascia in basso a destra (visibile nei render: "05 / 08" dentro l'anello). */
 .footer {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: 26px;
 }
 
 .brand {
@@ -185,6 +204,7 @@ html, body {
 /* --- layout: stat --- */
 .stat-number {
   font-family: "Fraunces Disp", serif;
+  font-variation-settings: "opsz" 144, "wght" 560;
   font-weight: 560;
   font-size: 220px;
   line-height: 0.95;
@@ -297,6 +317,7 @@ html, body {
 }
 .cover-title {
   font-family: "Fraunces Disp", serif;
+  font-variation-settings: "opsz" 144, "wght" 560;
   font-weight: 560;
   font-size: 112px;
   line-height: 1.02;
